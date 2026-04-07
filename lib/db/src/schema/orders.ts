@@ -7,6 +7,7 @@ export const ordersTable = pgTable("orders", {
   username: text("username").notNull(),
   rank: text("rank").notNull(),
   transactionId: text("transaction_id").notNull(),
+  referral: text("referral").notNull().default("NONE"),
   status: text("status").notNull().default("pending"),
   createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
 });

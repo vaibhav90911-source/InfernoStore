@@ -1,0 +1,145 @@
+Add a COMPLETE referral system to the existing Minecraft store website.
+
+========================
+🎟 REFERRAL SYSTEM (FULL BUILD)
+===============================
+
+Create a full referral system from scratch with admin control.
+
+========================
+📁 DATABASE SETUP
+=================
+
+Create a new file:
+referrals.json
+
+Structure:
+[
+{
+"code": "Volt",
+"creator": "VoltRazeX",
+"discount": 10,
+"uses": 0
+}
+]
+
+========================
+💳 CHECKOUT SYSTEM UPDATE
+=========================
+
+Add a new input field in checkout:
+
+Label: "Referral Code (optional)"
+Placeholder: "Enter creator code"
+
+Behavior:
+
+* If user leaves it empty → save "NONE"
+* If user enters code:
+
+  * Check if code exists in referrals.json
+  * If valid:
+
+    * Save referral code in order
+    * Increase "uses" count
+    * Apply discount (optional: reduce price)
+  * If invalid:
+
+    * Show error "Invalid referral code"
+
+Save in orders:
+
+* username
+* item
+* transactionId
+* referral ("NONE" or code)
+* status
+
+========================
+📊 ADMIN PANEL UPDATE
+=====================
+
+1. Orders Table:
+
+* Add new column: "Referral"
+* Show:
+
+  * "NONE" if not used
+  * Code name if used
+
+========================
+🛠 REFERRAL MANAGER (ADMIN ONLY)
+================================
+
+Create a new section in admin panel called:
+"Referral Manager"
+
+IMPORTANT:
+
+* ONLY admin users can access this section
+* Hide it from normal users
+
+Features:
+
+1. View all referral codes in a table:
+   Columns:
+
+   * Code
+   * Creator Name
+   * Discount %
+   * Uses
+   * Actions
+
+2. Create new referral code:
+   Form inputs:
+
+   * Code name
+   * Creator name
+   * Discount %
+
+   Button: "Create Code"
+
+3. Delete referral code:
+
+   * Add delete button for each code
+
+========================
+🔐 PERMISSIONS
+==============
+
+* Only users with role "admin" can:
+
+  * Access referral manager
+  * Create codes
+  * Delete codes
+
+* Normal users:
+
+  * Can only use referral codes in checkout
+
+========================
+🎨 UI DESIGN
+============
+
+* Match existing dark orange theme
+* Use glowing borders and clean layout
+* Style tables similar to order management
+* Highlight referral codes with accent color
+
+========================
+⚙️ OPTIONAL (IF EASY)
+=====================
+
+* Apply discount to price if referral is used
+* Show discounted price in checkout
+
+========================
+🎯 FINAL GOAL
+=============
+
+Create a fully working referral system where:
+
+* Players can enter referral codes when purchasing
+* Admin can create and manage codes
+* Orders show referral usage
+* System is secure and admin-only controlled
