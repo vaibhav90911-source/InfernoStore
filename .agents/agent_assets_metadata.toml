@@ -1,0 +1,8 @@
+uploads = []
+outputs = []
+
+[[generated]]
+id = "GutyvMWv3v4bffHZYktde"
+uri = "file://artifacts/inferno-smp/public/hero-bg.png"
+type = "image"
+title = "Epic Minecraft volcanic landscape"

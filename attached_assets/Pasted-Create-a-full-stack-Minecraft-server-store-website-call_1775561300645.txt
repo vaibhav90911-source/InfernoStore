@@ -1,0 +1,193 @@
+Create a full-stack Minecraft server store website called "Inferno SMP".
+
+Tech:
+
+* Node.js with Express backend
+* Simple HTML, CSS, JavaScript frontend (no frameworks)
+* Use JSON file as database (users.json, orders.json)
+
+========================
+🎨 DESIGN (VERY IMPORTANT)
+==========================
+
+* Dark theme (black background)
+* Orange/red gradient accents
+* Glow effects on buttons
+* Modern gaming UI like Tebex
+* Smooth hover animations
+* Clean card-based layout
+
+========================
+🏠 HOME PAGE
+============
+
+* Big title: "Inferno SMP"
+* Subtitle: "Best Lifesteal Minecraft Server"
+* Show server IP: "play.infernosmp.fun"
+* Button: "Copy IP"
+* Button: "Go to Store"
+* Section: Features (Lifesteal, PvP, Events, Custom Ranks)
+* Section: Featured ranks (Inferno, Storm, Frost)
+
+========================
+🔐 AUTH SYSTEM
+==============
+
+* Register and Login system
+* Store users in users.json
+* First registered user automatically becomes ADMIN
+* Save:
+
+  * username
+  * password (plain text is fine for now)
+  * role (admin/user)
+
+========================
+🛒 STORE PAGE
+=============
+
+Show ranks as cards:
+
+1. Inferno — ₹2499
+
+   * Homes: 7
+   * RTP Cooldown: 3 minutes
+   * Tag: "BEST VALUE"
+
+2. Storm — ₹2199
+
+   * Homes: 6
+
+3. Frost — ₹1999
+
+   * Homes: 5
+
+4. Abyss — ₹1799
+
+   * Homes: 4
+
+5. Toxic — ₹1499
+
+   * Homes: 3
+
+6. VIP — ₹999
+
+   * Homes: 2
+
+Default players:
+
+* Homes: 1
+
+IMPORTANT:
+
+* Do NOT include "Legend" rank
+* Do NOT use "bed slots"
+* Only use "Homes"
+
+Each card must have:
+
+* Rank name
+* Price
+* Perks
+* Buy button
+
+========================
+💳 CHECKOUT SYSTEM
+==================
+
+* Only logged-in users can buy
+* When user clicks BUY:
+
+  * Auto use logged-in username
+* Show payment instructions:
+  "Send payment to: yourname@upi"
+* Input field for Transaction ID
+* Submit button
+
+When submitted:
+
+* Save order in orders.json:
+
+  * username
+  * rank
+  * transactionId
+  * status: "pending"
+
+========================
+📊 USER DASHBOARD
+=================
+
+* Show logged-in user's orders
+* Show:
+
+  * Rank
+  * Transaction ID
+  * Status (Pending / Approved / Rejected)
+
+========================
+🛠 ADMIN PANEL
+==============
+
+* Only ADMIN can access
+* Show ALL orders
+* For each order:
+
+  * Username
+  * Rank
+  * Transaction ID
+  * Status
+
+Buttons:
+
+* Approve
+* Reject
+
+When clicked:
+
+* Update order status
+
+========================
+🧭 NAVBAR
+=========
+
+* Home
+* Store
+* Dashboard
+* Admin (only visible for admin)
+* Login / Register
+
+========================
+⚙️ BACKEND ROUTES
+=================
+
+* POST /register
+* POST /login
+* GET /store
+* POST /buy
+* GET /orders (user)
+* GET /admin/orders
+* POST /admin/update
+
+========================
+🔥 EXTRA REQUIREMENTS
+=====================
+
+* Fully working backend + frontend connected
+* No fake UI — everything must function
+* Clean folder structure:
+
+  * /public (frontend)
+  * /server.js
+  * /data (JSON files)
+
+========================
+🎯 FINAL GOAL
+=============
+
+Build a COMPLETE working Minecraft store website like Tebex with:
+
+* Login system
+* Store
+* UPI payment proof system
+* Order tracking
+* Admin approval system
