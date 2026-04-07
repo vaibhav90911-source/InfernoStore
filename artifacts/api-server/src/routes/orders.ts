@@ -5,7 +5,7 @@ import {
   BuyRankBody,
   UpdateOrderStatusBody,
 } from "@workspace/api-zod";
-import { RANKS } from "./store";
+import { RANKS, KEYS } from "./store";
 
 const router: IRouter = Router();
 
@@ -23,9 +23,9 @@ router.post("/buy", async (req, res): Promise<void> => {
 
   const { rank, transactionId } = parsed.data;
 
-  const validRank = RANKS.find((r) => r.id === rank);
-  if (!validRank) {
-    res.status(400).json({ error: "Invalid rank" });
+  const validItem = RANKS.find((r) => r.id === rank) || KEYS.find((k) => k.id === rank);
+  if (!validItem) {
+    res.status(400).json({ error: "Invalid rank or key" });
     return;
   }
 

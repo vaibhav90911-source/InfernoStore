@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { useLocation } from "wouter";
 import { motion, AnimatePresence } from "framer-motion";
-import { Check, Shield, Zap, X } from "lucide-react";
+import { Check, Shield, Zap, X, Key } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import {
   useGetStore,
@@ -18,6 +18,41 @@ const fadeUp = {
   show: (i = 0) => ({ opacity: 1, y: 0, transition: { duration: 0.45, delay: i * 0.07, ease: [0.22, 1, 0.36, 1] } }),
 };
 
+const CRATE_KEYS = [
+  {
+    id: "beast-key",
+    name: "Beast Key",
+    price: 699,
+    description: "Top-tier crate key",
+    color: "#00E5FF",
+    tag: "TOP TIER",
+  },
+  {
+    id: "inferno-key",
+    name: "Inferno Key",
+    price: 499,
+    description: "High-tier crate key",
+    color: "#FF2200",
+    tag: null,
+  },
+  {
+    id: "legendary-key",
+    name: "Legendary Key",
+    price: 299,
+    description: "Mid-tier crate key",
+    color: "#FF8C00",
+    tag: null,
+  },
+];
+
+type CheckoutItem = {
+  id: string;
+  name: string;
+  price: number;
+  color: string;
+  type: "rank" | "key";
+};
+
 export default function Store() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
@@ -26,30 +61,28 @@ export default function Store() {
   const { data: ranks, isLoading: isLoadingRanks } = useGetStore({ query: { queryKey: getGetStoreQueryKey() } });
   const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false } });
 
-  const [selectedRankId, setSelectedRankId] = useState<string | null>(null);
+  const [checkoutItem, setCheckoutItem] = useState<CheckoutItem | null>(null);
   const [transactionId, setTransactionId] = useState("");
-  const buyRankMutation = useBuyRank();
+  const buyMutation = useBuyRank();
 
-  const activeRank = ranks?.find((r) => r.id === selectedRankId);
-
-  const handleBuyClick = (rankId: string) => {
+  const handleBuyClick = (item: CheckoutItem) => {
     if (!user) {
-      toast({ title: "Login Required", description: "Please login to purchase ranks.", variant: "destructive" });
+      toast({ title: "Login Required", description: "Please login to make a purchase.", variant: "destructive" });
       setLocation("/login");
       return;
     }
-    setSelectedRankId(rankId);
+    setCheckoutItem(item);
     setTransactionId("");
   };
 
   const handleCheckoutSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedRankId || !transactionId.trim()) return;
-    buyRankMutation.mutate({ data: { rank: selectedRankId, transactionId: transactionId.trim() } }, {
+    if (!checkoutItem || !transactionId.trim()) return;
+    buyMutation.mutate({ data: { rank: checkoutItem.id, transactionId: transactionId.trim() } }, {
       onSuccess: () => {
         toast({ title: "Order Submitted!", description: "Your order is pending approval. Check your dashboard." });
         queryClient.invalidateQueries({ queryKey: getGetOrdersQueryKey() });
-        setSelectedRankId(null);
+        setCheckoutItem(null);
         setLocation("/dashboard");
       },
       onError: (err) => {
@@ -59,10 +92,10 @@ export default function Store() {
   };
 
   return (
-    <div className="min-h-[100dvh] pt-24 pb-20" style={{ paddingTop: "calc(64px + 3rem)" }}>
+    <div className="min-h-[100dvh] pb-20" style={{ paddingTop: "calc(64px + 3rem)" }}>
       <div className="container mx-auto px-6 max-w-6xl">
 
-        {/* Header */}
+        {/* ── RANKS HEADER ── */}
         <div className="text-center mb-14">
           <p className="text-sm font-semibold uppercase tracking-widest text-primary/80 mb-3">Inferno SMP Store</p>
           <h1 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-3">Choose Your Rank</h1>
@@ -71,7 +104,7 @@ export default function Store() {
           </p>
         </div>
 
-        {/* Rank grid */}
+        {/* ── RANKS GRID ── */}
         {isLoadingRanks ? (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
             {[1, 2, 3, 4, 5, 6].map((i) => (
@@ -87,12 +120,13 @@ export default function Store() {
                 initial="hidden"
                 animate="show"
                 custom={idx}
-                className="group relative rounded-2xl bg-card border border-border/60 p-7 flex flex-col overflow-hidden card-glow"
+                className="group relative rounded-2xl bg-card border border-border/60 p-7 flex flex-col overflow-hidden"
                 style={{
+                  transition: "transform 0.2s ease, box-shadow 0.2s ease",
                   boxShadow: rank.tag ? `0 0 0 1px ${rank.color}30, 0 8px 32px -8px ${rank.color}25` : undefined,
                 }}
+                whileHover={{ scale: 1.03 }}
               >
-                {/* Rank color ambient glow */}
                 <div
                   className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"
                   style={{ background: `radial-gradient(ellipse at 80% 0%, ${rank.color}10, transparent 70%)` }}
@@ -102,7 +136,6 @@ export default function Store() {
                   style={{ boxShadow: `inset 0 0 0 1px ${rank.color}30` }}
                 />
 
-                {/* Tag */}
                 {rank.tag && (
                   <div
                     className="absolute top-0 right-0 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-bl-xl rounded-tr-xl"
@@ -113,16 +146,12 @@ export default function Store() {
                 )}
 
                 <div className="relative z-10 flex flex-col flex-1">
-                  {/* Rank name & price */}
-                  <h3 className="text-2xl font-black mb-1" style={{ color: rank.color }}>
-                    {rank.name}
-                  </h3>
+                  <h3 className="text-2xl font-black mb-1" style={{ color: rank.color }}>{rank.name}</h3>
                   <div className="flex items-baseline gap-1 mb-6">
                     <span className="text-4xl font-black text-white">₹{rank.price.toLocaleString()}</span>
                     <span className="text-muted-foreground text-sm font-medium">one-time</span>
                   </div>
 
-                  {/* Perks */}
                   <ul className="space-y-3 mb-8 flex-1">
                     <li className="flex items-center gap-3 text-sm">
                       <span className="w-5 h-5 rounded-full flex items-center justify-center shrink-0" style={{ background: `${rank.color}18` }}>
@@ -152,15 +181,14 @@ export default function Store() {
                     </li>
                   </ul>
 
-                  {/* Buy button */}
                   <button
-                    onClick={() => handleBuyClick(rank.id)}
-                    className="w-full h-11 rounded-xl text-sm font-bold text-white transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0"
+                    onClick={() => handleBuyClick({ id: rank.id, name: rank.name, price: rank.price, color: rank.color, type: "rank" })}
+                    className="w-full h-11 rounded-xl text-sm font-bold text-white transition-all duration-200"
                     style={{
                       background: rank.color,
                       boxShadow: `0 4px 16px -4px ${rank.color}60`,
                     }}
-                    onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.boxShadow = `0 6px 20px -4px ${rank.color}80`)}
+                    onMouseEnter={e => ((e.currentTarget as HTMLButtonElement).style.boxShadow = `0 6px 24px -4px ${rank.color}80`)}
                     onMouseLeave={e => ((e.currentTarget as HTMLButtonElement).style.boxShadow = `0 4px 16px -4px ${rank.color}60`)}
                   >
                     Buy Now
@@ -170,23 +198,129 @@ export default function Store() {
             ))}
           </div>
         )}
+
+        {/* ── CRATE KEYS SECTION ── */}
+        <div className="mt-24">
+          <div className="text-center mb-14">
+            <p className="text-sm font-semibold uppercase tracking-widest text-primary/80 mb-3">Crate Keys</p>
+            <h2 className="text-4xl md:text-5xl font-black tracking-tight text-white mb-3">Open the Crates</h2>
+            <p className="text-muted-foreground text-base max-w-md mx-auto">
+              Unlock powerful rewards from exclusive crates. Each key opens a treasure trove of rare loot.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5 max-w-3xl mx-auto">
+            {CRATE_KEYS.map((key, idx) => (
+              <motion.div
+                key={key.id}
+                variants={fadeUp}
+                initial="hidden"
+                animate="show"
+                custom={idx}
+                className="group relative rounded-2xl bg-card border border-border/60 p-7 flex flex-col overflow-hidden"
+                style={{
+                  boxShadow: key.tag ? `0 0 0 1px ${key.color}30, 0 8px 32px -8px ${key.color}25` : `0 0 0 1px ${key.color}15`,
+                }}
+                whileHover={{ scale: 1.05 }}
+                transition={{ type: "spring", stiffness: 300, damping: 20 }}
+              >
+                {/* Ambient glow on hover */}
+                <div
+                  className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none rounded-2xl"
+                  style={{ background: `radial-gradient(ellipse at 50% 0%, ${key.color}14, transparent 65%)` }}
+                />
+                <div
+                  className="absolute inset-0 pointer-events-none rounded-2xl transition-all duration-300"
+                  style={{ boxShadow: `inset 0 0 0 1px ${key.color}00` }}
+                  onMouseEnter={() => {}}
+                />
+
+                {/* Top glow border on hover */}
+                <div
+                  className="absolute top-0 left-0 right-0 h-px opacity-40 group-hover:opacity-100 transition-opacity duration-300"
+                  style={{ background: `linear-gradient(90deg, transparent, ${key.color}, transparent)` }}
+                />
+
+                {/* Tag badge */}
+                {key.tag && (
+                  <div
+                    className="absolute top-0 right-0 text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-bl-xl rounded-tr-xl"
+                    style={{ background: key.color, color: "#000" }}
+                  >
+                    {key.tag}
+                  </div>
+                )}
+
+                <div className="relative z-10 flex flex-col flex-1 items-center text-center">
+                  {/* Key icon */}
+                  <div
+                    className="w-14 h-14 rounded-2xl flex items-center justify-center mb-5 group-hover:scale-110 transition-transform duration-300"
+                    style={{
+                      background: `${key.color}15`,
+                      border: `1px solid ${key.color}30`,
+                      boxShadow: `0 0 20px ${key.color}20`,
+                    }}
+                  >
+                    <Key className="h-6 w-6" style={{ color: key.color }} />
+                  </div>
+
+                  {/* Name */}
+                  <h3 className="text-xl font-black mb-1" style={{ color: key.color }}>{key.name}</h3>
+
+                  {/* Description */}
+                  <p className="text-sm text-muted-foreground mb-4">{key.description}</p>
+
+                  {/* Price */}
+                  <div className="flex items-baseline gap-1 mb-7">
+                    <span className="text-3xl font-black text-white">₹{key.price.toLocaleString()}</span>
+                    <span className="text-muted-foreground text-sm">per key</span>
+                  </div>
+
+                  {/* Buy button */}
+                  <button
+                    onClick={() => handleBuyClick({ id: key.id, name: key.name, price: key.price, color: key.color, type: "key" })}
+                    className="w-full h-11 rounded-xl text-sm font-bold transition-all duration-200"
+                    style={{
+                      color: key.color,
+                      background: `${key.color}15`,
+                      border: `1px solid ${key.color}40`,
+                    }}
+                    onMouseEnter={e => {
+                      const btn = e.currentTarget as HTMLButtonElement;
+                      btn.style.background = `${key.color}25`;
+                      btn.style.borderColor = `${key.color}70`;
+                      btn.style.boxShadow = `0 0 16px ${key.color}30`;
+                    }}
+                    onMouseLeave={e => {
+                      const btn = e.currentTarget as HTMLButtonElement;
+                      btn.style.background = `${key.color}15`;
+                      btn.style.borderColor = `${key.color}40`;
+                      btn.style.boxShadow = "none";
+                    }}
+                  >
+                    Buy Now
+                  </button>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+
       </div>
 
       {/* ── CHECKOUT MODAL ── */}
       <AnimatePresence>
-        {selectedRankId && activeRank && (
+        {checkoutItem && (
           <>
-            {/* Backdrop */}
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.2 }}
               className="fixed inset-0 z-50 bg-black/70 backdrop-blur-sm"
-              onClick={() => setSelectedRankId(null)}
+              onClick={() => setCheckoutItem(null)}
             />
 
-            {/* Modal */}
             <motion.div
               initial={{ opacity: 0, scale: 0.95, y: 20 }}
               animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -196,43 +330,40 @@ export default function Store() {
             >
               <div
                 className="relative w-full max-w-md bg-card border border-border/70 rounded-2xl shadow-2xl pointer-events-auto overflow-hidden"
-                style={{ boxShadow: `0 0 0 1px ${activeRank.color}20, 0 24px 64px -12px rgba(0,0,0,0.9)` }}
+                style={{ boxShadow: `0 0 0 1px ${checkoutItem.color}20, 0 24px 64px -12px rgba(0,0,0,0.9)` }}
               >
-                {/* Color accent bar */}
-                <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: activeRank.color }} />
+                <div className="absolute top-0 left-0 right-0 h-0.5" style={{ background: checkoutItem.color }} />
 
-                {/* Close button */}
                 <button
-                  onClick={() => setSelectedRankId(null)}
+                  onClick={() => setCheckoutItem(null)}
                   className="absolute top-4 right-4 w-8 h-8 rounded-lg bg-white/5 hover:bg-white/10 flex items-center justify-center transition-colors"
                 >
                   <X className="h-4 w-4 text-muted-foreground" />
                 </button>
 
                 <div className="p-7 pt-8">
-                  {/* Header */}
                   <div className="mb-6">
-                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">Checkout</p>
+                    <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-1">
+                      Checkout — {checkoutItem.type === "key" ? "Crate Key" : "Rank"}
+                    </p>
                     <h2 className="text-2xl font-black text-white">
-                      <span style={{ color: activeRank.color }}>{activeRank.name}</span> Rank
+                      <span style={{ color: checkoutItem.color }}>{checkoutItem.name}</span>
                     </h2>
-                    <p className="text-3xl font-black text-white mt-1">₹{activeRank.price.toLocaleString()}</p>
+                    <p className="text-3xl font-black text-white mt-1">₹{checkoutItem.price.toLocaleString()}</p>
                   </div>
 
-                  {/* Step 1: Payment details */}
                   <div className="rounded-xl bg-background/60 border border-border/60 p-4 mb-5">
                     <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
                       Step 1 — Send Payment
                     </p>
                     <p className="text-sm text-muted-foreground mb-3">
-                      Send exactly <span className="text-white font-bold">₹{activeRank.price.toLocaleString()}</span> to:
+                      Send exactly <span className="text-white font-bold">₹{checkoutItem.price.toLocaleString()}</span> to:
                     </p>
-                    <div className="bg-background border border-border rounded-lg px-4 py-2.5 font-mono text-base text-center select-all" style={{ color: activeRank.color }}>
+                    <div className="bg-background border border-border rounded-lg px-4 py-2.5 font-mono text-base text-center select-all" style={{ color: checkoutItem.color }}>
                       infernosmp@upi
                     </div>
                   </div>
 
-                  {/* Step 2: Transaction ID */}
                   <form onSubmit={handleCheckoutSubmit}>
                     <div className="mb-5">
                       <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground mb-3">
@@ -256,14 +387,14 @@ export default function Store() {
 
                     <button
                       type="submit"
-                      disabled={!transactionId.trim() || buyRankMutation.isPending}
+                      disabled={!transactionId.trim() || buyMutation.isPending}
                       className="w-full h-12 rounded-xl text-sm font-bold text-white transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed hover:-translate-y-0.5 active:translate-y-0"
                       style={{
-                        background: activeRank.color,
-                        boxShadow: `0 4px 20px -4px ${activeRank.color}70`,
+                        background: checkoutItem.color,
+                        boxShadow: `0 4px 20px -4px ${checkoutItem.color}70`,
                       }}
                     >
-                      {buyRankMutation.isPending ? "Submitting..." : "Confirm Payment"}
+                      {buyMutation.isPending ? "Submitting..." : "Confirm Payment"}
                     </button>
                   </form>
                 </div>

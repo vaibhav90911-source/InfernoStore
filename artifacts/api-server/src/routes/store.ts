@@ -59,9 +59,40 @@ const RANKS = [
   },
 ];
 
+const KEYS = [
+  {
+    id: "beast-key",
+    name: "Beast Key",
+    price: 699,
+    description: "Top-tier crate key",
+    color: "#00E5FF",
+    tag: "TOP TIER",
+  },
+  {
+    id: "inferno-key",
+    name: "Inferno Key",
+    price: 499,
+    description: "High-tier crate key",
+    color: "#FF2200",
+    tag: null,
+  },
+  {
+    id: "legendary-key",
+    name: "Legendary Key",
+    price: 299,
+    description: "Mid-tier crate key",
+    color: "#FF8C00",
+    tag: null,
+  },
+];
+
 router.get("/store", async (_req, res): Promise<void> => {
   res.json(RANKS);
 });
 
-export { RANKS };
+router.get("/store/keys", async (_req, res): Promise<void> => {
+  res.json(KEYS);
+});
+
+export { RANKS, KEYS };
 export default router;
