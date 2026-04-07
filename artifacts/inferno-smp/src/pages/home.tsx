@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Copy, Check, ChevronRight, Shield, Swords, Zap, Trophy } from "lucide-react";
+import { Copy, Check, ChevronRight, Shield, Swords, Users, Trophy, Calendar, Zap } from "lucide-react";
 import { Link } from "wouter";
 import { useGetStore, getGetStoreQueryKey } from "@workspace/api-client-react";
 import { useToast } from "@/hooks/use-toast";
@@ -26,8 +26,8 @@ export default function Home() {
 
   const features = [
     { icon: Swords, title: "Lifesteal PvP", desc: "Kill players to steal their hearts. Lose all hearts and face elimination." },
-    { icon: Shield, title: "Custom Enchants", desc: "Unique enchantments that give you the edge in intense PvP combat." },
-    { icon: Zap, title: "Daily Events", desc: "King of the Hill, boss fights, envoys, and more every single day." },
+    { icon: Calendar, title: "Weekly Events", desc: "Every Sunday at 2PM IST — PvP Tournaments, Clutch Tournaments, and much more." },
+    { icon: Users, title: "Active Community", desc: "A thriving, passionate community of players ready to compete and collaborate." },
     { icon: Trophy, title: "Competitive", desc: "Climb the leaderboards and prove you are the strongest player alive." },
   ];
 
@@ -51,7 +51,7 @@ export default function Home() {
             className="mb-8 inline-flex items-center gap-2 rounded-full border border-primary/25 bg-primary/8 px-4 py-1.5 text-sm font-medium text-primary/90"
           >
             <span className="w-2 h-2 rounded-full bg-primary animate-pulse" />
-            Season 5 is LIVE
+            Season 2 is LIVE
           </motion.div>
 
           {/* Title */}
