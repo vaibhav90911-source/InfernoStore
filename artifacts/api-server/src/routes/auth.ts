@@ -1,22 +1,21 @@
-import { Router, type IRouter } from "express";
+import { Router, Request, Response } from "express";
 import { db, usersTable } from "@workspace/db";
 import { eq, count } from "drizzle-orm";
-import {
-  RegisterBody,
-  LoginBody,
-} from "@workspace/api-zod";
+import { RegisterBody, LoginBody } from "@workspace/api-zod";
 
-const router: IRouter = Router();
-
-declare module "express-session" {
-  interface SessionData {
-    userId: number;
-    username: string;
-    role: string;
-  }
+// ✅ extend Request for session
+interface SessionRequest extends Request {
+  session?: {
+    userId?: number;
+    username?: string;
+    role?: string;
+    destroy?: (cb: () => void) => void;
+  };
 }
 
-router.post("/register", async (req, res): Promise<void> => {
+const router = Router();
+
+router.post("/register", async (req: SessionRequest, res: Response): Promise<void> => {
   const parsed = RegisterBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -44,9 +43,12 @@ router.post("/register", async (req, res): Promise<void> => {
     .values({ username, password, role })
     .returning();
 
-  req.session.userId = user.id;
-  req.session.username = user.username;
-  req.session.role = user.role;
+  // ✅ safe session set
+  if (req.session) {
+    req.session.userId = user.id;
+    req.session.username = user.username;
+    req.session.role = user.role;
+  }
 
   res.status(201).json({
     user: { id: user.id, username: user.username, role: user.role },
@@ -54,7 +56,7 @@ router.post("/register", async (req, res): Promise<void> => {
   });
 });
 
-router.post("/login", async (req, res): Promise<void> => {
+router.post("/login", async (req: SessionRequest, res: Response): Promise<void> => {
   const parsed = LoginBody.safeParse(req.body);
   if (!parsed.success) {
     res.status(400).json({ error: parsed.error.message });
@@ -73,9 +75,11 @@ router.post("/login", async (req, res): Promise<void> => {
     return;
   }
 
-  req.session.userId = user.id;
-  req.session.username = user.username;
-  req.session.role = user.role;
+  if (req.session) {
+    req.session.userId = user.id;
+    req.session.username = user.username;
+    req.session.role = user.role;
+  }
 
   res.json({
     user: { id: user.id, username: user.username, role: user.role },
@@ -83,13 +87,13 @@ router.post("/login", async (req, res): Promise<void> => {
   });
 });
 
-router.post("/logout", async (req, res): Promise<void> => {
-  req.session.destroy(() => {});
+router.post("/logout", async (req: SessionRequest, res: Response): Promise<void> => {
+  req.session?.destroy?.(() => {});
   res.json({ message: "Logged out successfully" });
 });
 
-router.get("/me", async (req, res): Promise<void> => {
-  if (!req.session.userId) {
+router.get("/me", async (req: SessionRequest, res: Response): Promise<void> => {
+  if (!req.session?.userId) {
     res.status(401).json({ error: "Not authenticated" });
     return;
   }
@@ -100,12 +104,16 @@ router.get("/me", async (req, res): Promise<void> => {
     .where(eq(usersTable.id, req.session.userId));
 
   if (!user) {
-    req.session.destroy(() => {});
+    req.session?.destroy?.(() => {});
     res.status(401).json({ error: "User not found" });
     return;
   }
 
-  res.json({ id: user.id, username: user.username, role: user.role });
+  res.json({
+    id: user.id,
+    username: user.username,
+    role: user.role,
+  });
 });
 
 export default router;
