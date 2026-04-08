@@ -156,6 +156,10 @@ overrides:
 importers:
 
   .:
+    dependencies:
+      pino-http:
+        specifier: ^10.5.0
+        version: 10.5.0
     devDependencies:
       prettier:
         specifier: ^3.8.1
