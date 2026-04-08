@@ -95,6 +95,9 @@ router.get("/orders", async (req, res): Promise<void> => {
       transactionId: o.transactionId,
       referral: o.referral,
       status: o.status,
+      items: o.items ? JSON.parse(o.items) : null,
+      totalPrice: o.totalPrice,
+      minecraftUsername: o.minecraftUsername,
       createdAt: o.createdAt.toISOString(),
     }))
   );
@@ -124,6 +127,9 @@ router.get("/admin/orders", async (req, res): Promise<void> => {
       transactionId: o.transactionId,
       referral: o.referral,
       status: o.status,
+      items: o.items ? JSON.parse(o.items) : null,
+      totalPrice: o.totalPrice,
+      minecraftUsername: o.minecraftUsername,
       createdAt: o.createdAt.toISOString(),
     }))
   );

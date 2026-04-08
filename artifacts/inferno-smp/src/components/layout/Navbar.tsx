@@ -1,8 +1,9 @@
 import { useGetMe, useLogout, getGetMeQueryKey } from "@workspace/api-client-react";
 import { Link, useLocation } from "wouter";
-import { LogOut, User, Menu, Flame } from "lucide-react";
+import { LogOut, User, Menu, Flame, ShoppingCart } from "lucide-react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
+import { useCart } from "@/context/CartContext";
 
 export function Navbar() {
   const [location] = useLocation();
@@ -10,6 +11,7 @@ export function Navbar() {
   const queryClient = useQueryClient();
   const { data: user } = useGetMe({ query: { queryKey: getGetMeQueryKey(), retry: false } });
   const logout = useLogout();
+  const { count } = useCart();
 
   const handleLogout = () => {
     logout.mutate(undefined, {
@@ -52,8 +54,21 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Desktop auth */}
+          {/* Desktop right — cart + auth */}
           <div className="hidden md:flex items-center gap-3">
+            {/* Cart icon */}
+            <Link href="/cart">
+              <button className="relative w-9 h-9 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center text-muted-foreground hover:text-foreground hover:bg-white/10 transition-all duration-150">
+                <ShoppingCart className="h-4 w-4" />
+                {count > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-primary text-[10px] font-black text-white flex items-center justify-center leading-none"
+                    style={{ boxShadow: "0 0 8px rgba(255,100,0,0.6)" }}>
+                    {count}
+                  </span>
+                )}
+              </button>
+            </Link>
+
             {user ? (
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/5 border border-white/8 text-sm font-medium text-foreground">
@@ -82,13 +97,25 @@ export function Navbar() {
             )}
           </div>
 
-          {/* Mobile menu toggle */}
-          <button
-            className="md:hidden w-9 h-9 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
-            onClick={() => setMobileOpen(!mobileOpen)}
-          >
-            <Menu className="h-4.5 w-4.5" />
-          </button>
+          {/* Mobile: cart + menu toggle */}
+          <div className="md:hidden flex items-center gap-2">
+            <Link href="/cart">
+              <button className="relative w-9 h-9 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center text-muted-foreground">
+                <ShoppingCart className="h-4 w-4" />
+                {count > 0 && (
+                  <span className="absolute -top-1.5 -right-1.5 w-4.5 h-4.5 rounded-full bg-primary text-[10px] font-black text-white flex items-center justify-center leading-none">
+                    {count}
+                  </span>
+                )}
+              </button>
+            </Link>
+            <button
+              className="w-9 h-9 rounded-lg bg-white/5 border border-white/8 flex items-center justify-center text-muted-foreground hover:text-foreground transition-colors"
+              onClick={() => setMobileOpen(!mobileOpen)}
+            >
+              <Menu className="h-4.5 w-4.5" />
+            </button>
+          </div>
         </div>
 
         {/* Mobile menu */}
@@ -96,6 +123,9 @@ export function Navbar() {
           <div className="md:hidden border-t border-white/6 bg-background/95 backdrop-blur-xl px-6 py-5 flex flex-col gap-4">
             <Link href="/" onClick={() => setMobileOpen(false)} className={navLinkClass("/")}>Home</Link>
             <Link href="/store" onClick={() => setMobileOpen(false)} className={navLinkClass("/store")}>Store</Link>
+            <Link href="/cart" onClick={() => setMobileOpen(false)} className={navLinkClass("/cart")}>
+              Cart {count > 0 && <span className="ml-1 px-1.5 py-0.5 rounded-full bg-primary text-white text-xs font-black">{count}</span>}
+            </Link>
             {user && <Link href="/dashboard" onClick={() => setMobileOpen(false)} className={navLinkClass("/dashboard")}>Dashboard</Link>}
             {user?.role === "admin" && (
               <Link href="/admin" onClick={() => setMobileOpen(false)} className={navLinkClass("/admin")}>Admin</Link>
