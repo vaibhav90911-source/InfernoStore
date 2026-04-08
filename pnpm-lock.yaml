@@ -166,9 +166,6 @@ importers:
 
   artifacts/api-server:
     dependencies:
-      '@types/express-session':
-        specifier: ^1.18.2
-        version: 1.18.2
       '@workspace/api-zod':
         specifier: workspace:*
         version: link:../../lib/api-zod
@@ -206,6 +203,9 @@ importers:
       '@types/express':
         specifier: ^5.0.6
         version: 5.0.6
+      '@types/express-session':
+        specifier: ^1.18.2
+        version: 1.18.2
       '@types/node':
         specifier: 'catalog:'
         version: 25.3.5
