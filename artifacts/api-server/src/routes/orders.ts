@@ -1,8 +1,7 @@
 import { Router, type IRouter } from "express";
-import { db, ordersTable } from "@workspace/db";
-import { eq } from "drizzle-orm";
+import { db, ordersTable, referralsTable } from "@workspace/db";
+import { eq, sql } from "drizzle-orm";
 import {
-  BuyRankBody,
   UpdateOrderStatusBody,
 } from "@workspace/api-zod";
 import { RANKS, KEYS } from "./store";
@@ -15,13 +14,12 @@ router.post("/buy", async (req, res): Promise<void> => {
     return;
   }
 
-  const parsed = BuyRankBody.safeParse(req.body);
-  if (!parsed.success) {
-    res.status(400).json({ error: parsed.error.message });
+  const { rank, transactionId, referral } = req.body ?? {};
+
+  if (!rank || typeof rank !== "string") {
+    res.status(400).json({ error: "Rank or key is required" });
     return;
   }
-
-  const { rank, transactionId } = parsed.data;
 
   const validItem = RANKS.find((r) => r.id === rank) || KEYS.find((k) => k.id === rank);
   if (!validItem) {
@@ -34,12 +32,34 @@ router.post("/buy", async (req, res): Promise<void> => {
     return;
   }
 
+  let referralCode = "NONE";
+
+  if (referral && referral.trim() !== "") {
+    const [ref] = await db
+      .select()
+      .from(referralsTable)
+      .where(eq(referralsTable.code, referral.trim()));
+
+    if (!ref) {
+      res.status(400).json({ error: "Invalid referral code" });
+      return;
+    }
+
+    referralCode = ref.code;
+
+    await db
+      .update(referralsTable)
+      .set({ uses: sql`${referralsTable.uses} + 1` })
+      .where(eq(referralsTable.code, ref.code));
+  }
+
   const [order] = await db
     .insert(ordersTable)
     .values({
       username: req.session.username!,
       rank,
       transactionId: transactionId.trim(),
+      referral: referralCode,
       status: "pending",
     })
     .returning();
@@ -49,6 +69,7 @@ router.post("/buy", async (req, res): Promise<void> => {
     username: order.username,
     rank: order.rank,
     transactionId: order.transactionId,
+    referral: order.referral,
     status: order.status,
     createdAt: order.createdAt.toISOString(),
   });
@@ -72,6 +93,7 @@ router.get("/orders", async (req, res): Promise<void> => {
       username: o.username,
       rank: o.rank,
       transactionId: o.transactionId,
+      referral: o.referral,
       status: o.status,
       createdAt: o.createdAt.toISOString(),
     }))
@@ -100,6 +122,7 @@ router.get("/admin/orders", async (req, res): Promise<void> => {
       username: o.username,
       rank: o.rank,
       transactionId: o.transactionId,
+      referral: o.referral,
       status: o.status,
       createdAt: o.createdAt.toISOString(),
     }))
@@ -141,6 +164,7 @@ router.post("/admin/update", async (req, res): Promise<void> => {
     username: order.username,
     rank: order.rank,
     transactionId: order.transactionId,
+    referral: order.referral,
     status: order.status,
     createdAt: order.createdAt.toISOString(),
   });

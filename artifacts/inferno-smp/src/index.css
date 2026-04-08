@@ -220,7 +220,6 @@
 
 @layer base {
   html {
-    @apply dark;
     scroll-behavior: smooth;
   }
 

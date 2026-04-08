@@ -116,6 +116,11 @@ export default function Dashboard() {
                           </div>
                           <p className="text-xs text-muted-foreground mt-0.5">
                             Order #{order.id} &middot; UTR: <span className="font-mono">{order.transactionId}</span>
+                            {(order as any).referral && (order as any).referral !== "NONE" && (
+                              <span className="ml-2 inline-flex items-center gap-1 font-semibold" style={{ color: "#FF8C00" }}>
+                                · Code: {(order as any).referral}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
