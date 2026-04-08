@@ -1,6 +1,5 @@
 import express, { Request, Response, NextFunction } from "express";
 import session from "express-session";
-import pinoHttp from "pino-http";
 
 // routes
 import authRoutes from "./routes/auth";
@@ -11,13 +10,6 @@ import referralsRoutes from "./routes/referrals";
 import storeRoutes from "./routes/store";
 
 const app = express();
-
-// ✅ FIX pino-http import issue
-const logger = pinoHttp.default
-  ? pinoHttp.default()
-  : pinoHttp();
-
-app.use(logger);
 
 // ✅ middleware
 app.use(express.json());
@@ -48,8 +40,8 @@ app.use("/orders", ordersRoutes);
 app.use("/referrals", referralsRoutes);
 app.use("/store", storeRoutes);
 
-// ✅ error handler (fixes TS any errors)
-app.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
+// ✅ error handler (fixes TS errors)
+app.use((err: unknown, _req: Request, res: Response, _next: NextFunction) => {
   console.error(err);
   res.status(500).json({ error: "Internal Server Error" });
 });
